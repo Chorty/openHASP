@@ -80,7 +80,7 @@ static String esp32ResetReason(uint8_t cpuid)
             break; /**<13, RTC Watch dog Reset CPU*/
         case 14:
             resetReason += F("EXT_CPU");
-            break; /**<14, for APP CPU, reseted by PRO CPU*/
+            break; /**<14, for APP CPU, reset by PRO CPU*/
         case 15:
             resetReason += F("RTCWDT_BROWN_OUT");
             break; /**<15, Reset when the vdd voltage is not stable*/
@@ -108,7 +108,7 @@ Esp32Device::Esp32Device()
     _backlight_invert = (TFT_BACKLIGHT_ON == LOW);
     _backlight_power  = 1;
     _backlight_level  = 255;
-    _backlight_pin    = 255; // not TFT_BCKL because it is unkown at this stage
+    _backlight_pin    = 255; // not TFT_BCKL because it is unknown at this stage
 
     /* fill unique identifier with wifi mac */
     byte mac[6];
@@ -302,7 +302,7 @@ void Esp32Device::update_backlight()
 #else
         uint32_t duty = _backlight_power ? map(_backlight_level, 0, 255, 0, 1023) : 0;
         if(_backlight_invert) duty = 1023 - duty;
-        ledcWrite(BACKLIGHT_CHANNEL, duty);     // ledChannel and value
+        ledcWrite(BACKLIGHT_CHANNEL, duty); // ledChannel and value
 #endif
     }
 
@@ -357,7 +357,11 @@ uint16_t Esp32Device::get_cpu_frequency()
 bool Esp32Device::is_system_pin(uint8_t pin)
 {
 // Also see esp32.cpp / hasp_gpio.cpp
-#if defined(ESP32S2) // Arduino NUM_DIGITAL_PINS = 48 (but espressif says it only has 46)
+#if defined(CONFIG_IDF_TARGET_ESP32S3)
+    if((pin >= 22) && (pin <= 25)) return true; // unavailable
+    if((pin >= 26) && (pin <= 32)) return true; // integrated SPI flash
+    if((pin >= 33) && (pin <= 37)) return true; // octal flash or PSram
+#elif defined(CONFIG_IDF_TARGET_ESP32S2)                          // Arduino NUM_DIGITAL_PINS = 48 (but espressif says it only has 46)
     // From https://hggh.github.io/esp32/2021/01/06/ESP32-S2-pinout.html, it looks like IO26 is for PSRAM
     // More info https://docs.espressif.com/projects/esp-idf/en/latest/esp32s2/_images/esp32-s2_saola1-pinout.jpg
     // Datasheet
@@ -372,11 +376,7 @@ bool Esp32Device::is_system_pin(uint8_t pin)
     // SPIWP = IO14 or IO38
     if((pin >= 33) && (pin <= 38)) return true;  // SPI flash
     if(psramFound() && (pin == 26)) return true; // PSRAM. IO26 = SPICS1, the rest are shared with the flash
-#elif defined(ESP32S3)
-    if((pin >= 22) && (pin <= 25)) return true; // unavailable
-    if((pin >= 26) && (pin <= 32)) return true; // integrated SPI flash
-    if((pin >= 33) && (pin <= 37)) return true; // octal flash or PSram
-#else
+#elif defined(CONFIG_IDF_TARGET_ESP32)
     if((pin >= 6) && (pin <= 11)) return true;                    // integrated SPI flash
 #ifndef HASP_USE_GPIO37
     if(pin == 37) return true;                                    // unavailable

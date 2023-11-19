@@ -77,6 +77,7 @@
 // #define HASP_LANGUAGE pt_BR                       // Brazilian Portuguese
 // #define HASP_LANGUAGE pt_PT                       // Portuguese
 // #define HASP_LANGUAGE ro_RO                       // Romanian
+// #define HASP_LANGUAGE de_DE                       // German
 
 /***************************************************
  *        Web interface coloring
@@ -134,7 +135,7 @@
 // #define HASP_FONT_SIZE_4 48
 // #define HASP_FONT_SIZE_5 12
 
-#define LV_FONT_DEFAULT &HASP_FONT_1
+// #define LV_FONT_DEFAULT &HASP_FONT_1
 
 /***************************************************
  *        GPIO Settings

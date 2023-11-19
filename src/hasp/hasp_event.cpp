@@ -215,7 +215,7 @@ void event_timer_refresh(lv_task_t* task)
  * Get the hasp eventid for LV_EVENT_PRESSED, LV_EVENT_VALUE_CHANGED, LV_EVENT_LONG_PRESSED_REPEAT and
  * LV_EVENT_RELEASED Also updates the sleep state and handles LV_EVENT_DELETE events
  * @param obj pointer to a color picker
- * @param event type of event that occured
+ * @param event type of event that occurred
  * @param eventid returns the hasp eventid
  */
 static bool translate_event(lv_obj_t* obj, lv_event_t event, uint8_t& eventid)
@@ -367,7 +367,7 @@ static void log_event(const char* name, lv_event_t event)
 /**
  * Called when a press on the system layer is detected
  * @param obj pointer to a button matrix
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void first_touch_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -419,7 +419,7 @@ void swipe_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a textarea is clicked
  * @param obj pointer to a textarea object
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -455,7 +455,7 @@ void textarea_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a button-style object is clicked
  * @param obj pointer to a button object
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -546,7 +546,7 @@ void generic_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a object state is toggled on/off
  * @param obj pointer to a switch object
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -591,7 +591,7 @@ void toggle_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a range value has changed
  * @param obj pointer to a dropdown list or roller
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void selector_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -670,7 +670,7 @@ void selector_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a btnmatrix value has changed
  * @param obj pointer to a dropdown list or roller
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void alarm_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -714,7 +714,7 @@ void alarm_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a btnmatrix value has changed
  * @param obj pointer to a dropdown list or roller
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -749,7 +749,7 @@ void btnmatrix_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a msgbox value has changed
  * @param obj pointer to a dropdown list or roller
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -783,7 +783,7 @@ void msgbox_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a slider or adjustable arc is clicked
  * @param obj pointer to a slider
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void slider_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -825,7 +825,7 @@ void slider_event_handler(lv_obj_t* obj, lv_event_t event)
 /**
  * Called when a color picker is clicked
  * @param obj pointer to a color picker
- * @param event type of event that occured
+ * @param event type of event that occurred
  */
 void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 {
@@ -836,6 +836,7 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
 
     /* Get the new value */
     lv_color_t color = lv_cpicker_get_color(obj);
+    lv_cpicker_color_mode_t mode = lv_cpicker_get_color_mode(obj);
 
     if(hasp_event_id == HASP_EVENT_CHANGED && last_color_sent.full == color.full) return; // same value as before
 
@@ -845,17 +846,19 @@ void cpicker_event_handler(lv_obj_t* obj, lv_event_t event)
         Parser::get_event_name(hasp_event_id, eventname, sizeof(eventname));
 
         lv_color32_t c32;
+        lv_color_hsv_t hsv;
         c32.full        = lv_color_to32(color);
+        hsv             = lv_color_rgb_to_hsv(c32.ch.red, c32.ch.green, c32.ch.blue);
         last_color_sent = color;
 
         if(const char* tag = my_obj_get_tag(obj))
             snprintf_P(data, sizeof(data),
-                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"tag\":%s}"),
-                       eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, tag);
+                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%d,\"v\":%d,\"tag\":%s}"),
+                       eventname, c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h, hsv.s, hsv.v, tag);
         else
             snprintf_P(data, sizeof(data),
-                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d}"), eventname,
-                       c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue);
+                       PSTR("{\"event\":\"%s\",\"color\":\"#%02x%02x%02x\",\"r\":%d,\"g\":%d,\"b\":%d,\"h\":%d,\"s\":%d,\"v\":%d}"), eventname,
+                       c32.ch.red, c32.ch.green, c32.ch.blue, c32.ch.red, c32.ch.green, c32.ch.blue, hsv.h, hsv.s, hsv.v);
     }
     event_send_object_data(obj, data);
 
